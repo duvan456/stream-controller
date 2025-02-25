@@ -58,7 +58,7 @@ class _UsdScreenState extends State<UsdScreen> {
                   final timestamp = item['timestamp'] as DateTime;
                   return ListTile(
                     title: Text('RMR: $value'),
-                    subtitle: Text('Fecha: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(timestamp).toString()}'),
+                    subtitle: Text('Date: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(timestamp).toString()}'),
                   );
                 },
               );
