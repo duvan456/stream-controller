@@ -1,16 +1,16 @@
 import 'dart:async';
 
-class NotificationService {
-  final StreamController<double> _notificationController =
+class StreamService {
+  final StreamController<double> _streamController =
       StreamController<double>.broadcast();
 
-  Stream<double> get notificationStream => _notificationController.stream;
+  Stream<double> get notificationStream => _streamController.stream;
 
   void addNotification(double count) {
-    _notificationController.add(count);
+    _streamController.add(count);
   }
 
   void dispose() {
-    _notificationController.close();
+    _streamController.close();
   }
 }

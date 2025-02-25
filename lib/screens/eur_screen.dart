@@ -1,35 +1,41 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:stream_controller/components/notification_badge.dart';
-import 'package:stream_controller/components/notification_list.dart';
-import 'package:stream_controller/services/notification_service.dart';
+import 'package:intl/intl.dart';
 
 class EurScreen extends StatefulWidget {
   const EurScreen({super.key});
 
   @override
-  State<EurScreen> createState() => _NotificationScreenState();
+  State<EurScreen> createState() => _EurScreenState();
 }
 
-class _NotificationScreenState extends State<EurScreen> {
-  final NotificationService _notificationService = NotificationService();
-  double _counter = 0;
+class _EurScreenState extends State<EurScreen> {
+  final StreamController<List<Map<String, dynamic>>> _streamController = StreamController<List<Map<String, dynamic>>>();
+  double _rmr = 4277.20;
+  final Random _random = Random();
+  final List<Map<String, dynamic>> _rmrList = [];
 
   @override
   void initState() {
     super.initState();
-
-    Timer.periodic(Duration(seconds: 3), (timer) {
-      _counter++;
-      _notificationService
-      .addNotification(_counter);
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      double change = (_random.nextInt(100)-50)/100;
+      change = double.parse(change.toStringAsFixed(2));
+      _rmr += change;
+      final now = DateTime.now();
+      _rmrList.add({
+        'value': _rmr,
+        'timestamp': now,
+      });
+      _streamController.add(List.from(_rmrList));
     });
   }
 
   @override
   void dispose() {
-    _notificationService.dispose();
+    _streamController.close();
     super.dispose();
   }
 
@@ -37,23 +43,31 @@ class _NotificationScreenState extends State<EurScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notificaciones en tiempo real'),
-        actions: [
-          // Widget 1: Contador de notificaciones en la barra de navegación
-          NotificationBadge(notificationService: _notificationService),
-        ],
+        title: Text('💶 EUR to COP'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Notificaciones recibidas:',
-              style: TextStyle(fontSize: 20),
-            ),
-            // Widget 2: Lista de notificaciones
-            NotificationList(notificationService: _notificationService),
-          ],
+        child: StreamBuilder<List<Map<String, dynamic>>>(
+          stream: _streamController.stream,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  final item = snapshot.data![index];
+                    final value = '\$' + item['value'].toStringAsFixed(2);
+                  final timestamp = item['timestamp'] as DateTime;
+                  return ListTile(
+                    title: Text('RMR: $value'),
+                    subtitle: Text('Fecha: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(timestamp).toString()}'),
+                  );
+                },
+              );
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              return CircularProgressIndicator();
+            }
+          },
         ),
       ),
     );
